@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
-
+#define n_dof 233
 
 double poisson(double mu, int k) {
     
@@ -13,54 +13,77 @@ double poisson(double mu, int k) {
     return (mu_k*e_mu/k_fac);
 }
 
-int main(){
-  
-  using namespace std;
-  
-  int n_i;
-  double mu = 3.11538;
-  double li = 1;
-  double l = 1;
-  
-  ifstream fin("datensumme.txt");
-  ofstream like("likelihood.txt");
-  ofstream like2("likelihood2.txt");
-  
-  vector<int> daten;
+int main() {
 
-  for(int i = 0; i < 234; i++){
+using namespace std;
+
+int n_i;
+double mu = 3.11538;
+double l = 1;
+double li = 1;
+double nges = 1;
+int i;
     
-    fin >> n_i;
-    daten.push_back(n_i);
+ifstream fin("datensumme.txt");
+ofstream like("likelihood.txt");
+ofstream nll("nll.txt");
+ofstream delta("deltanll.txt");
+
+vector<int> daten;
+    
+    
+    
+for(int i = 0 ; i < 234 ; ++i) {
+        
+  fin >> n_i;
+  daten.push_back(n_i);
+    
+}
+
+for(int k : daten) {
+    
+  double li = poisson(mu, k);
+    
+  l *= li;
+
+  double m = poisson(k, k);
+    
+  nges *= m;
+    
+} 
+    
+cout << l << endl;
+
+for (double j = 0; j < 6; j+=0.01) {
   
-  }
-
-  for(int k : daten){
-    
-    double li = poisson(mu, k);
-    
-    l *= li;
-  }
-
-  cout << l << endl;
-
-  for(double j = 0; j < 6;){
-    
-    double h = 1;
-    
-      for(int n : daten){
+  double l2 = 1;
       
-        double hi = poisson(j, n);
-      
-        h *= hi;
-      }
-
-    like << j <<" "<< h << endl;
-    like2 << h << endl;
-    j += 0.01;
+  for(int k : daten) {    
+    
+    double li2 = poisson(j, k);
+    l2 *= li2;  
+  
   }
+
+like << j << " " << l2 << endl;
+      
+nll << j << " " << (-2)*log(l2) << endl;
+
+delta << j << " " << (-2)*log(l2)-((-2)*log(mu)) << endl;
+      
+}
+
+double lam = l/nges;
+
+cout << lam << endl;
+cout << (-2)*log(lam) << endl;
+
+
+double z = ((-2)*log(lam) - n_dof) / sqrt(2*n_dof);
+cout << z << endl;
 
 fin.close();
 like.close();
-like2.close();
+nll.close();
+delta.close();
 }
